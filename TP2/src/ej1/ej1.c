@@ -44,10 +44,10 @@ void string_proc_list_add_node(string_proc_list* list, uint8_t type, char* hash)
 
 
 char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash){
+	//reviso los nulls
 	if (list == NULL) return NULL;
-	if (list->first == NULL) return NULL; //si la lista es vacia no concatena nada
-	if (hash == NULL) return NULL; //si el hash es nulo no concatena nada
-
+	if (list->first == NULL) return NULL; 
+	if (hash == NULL) return NULL; 
 	if(!list->first-> next){
 		//si la lista tiene un solo nodo
 		if(list->first->type == type){
@@ -61,14 +61,10 @@ char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash)
 	char* result = strdup(hash);
 	while(node_actual != NULL){
 		if(node_actual->type == type){
-			// if(result == NULL){
-			// 	//si es el primer nodo que concatena
-			// 	result = node_actual->hash;
-			// }else{
-				char* aux = str_concat(result, node_actual->hash);
-				free(result);
-				result = aux;
-			
+			char* aux = str_concat(result, node_actual->hash);
+			free(result);
+			result = aux;
+		
 		}
 		node_actual = node_actual->next;
 	}

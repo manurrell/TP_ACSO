@@ -16,36 +16,46 @@ extern str_concat
 extern strlen
 extern strcpy
 
-
-
+; lista vacia
 string_proc_list_create_asm:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 16             
     mov     edi, 16    ; 16 bytes first y last 
             
-    call    malloc              
-    xor     rdx, rdx             
+    call    malloc     
+    test rax, rax      ; malloc check
+    je .null_return
+
+
+    xor     rdx, rdx   ; punteros a null      
     mov     [rax], rdx       
     mov     [rax + 8], rdx       
     add     rsp, 16
     pop     rbp
     ret
 
+.null_return:
+    xor rax, rax
+    add rsp, 16
+    pop rbp
+    ret
 
+; crear nodo
 string_proc_node_create_asm:
     push    rbp
     mov     rbp, rsp
 
-    ; type, hash, node
+    ; type, hash, node 
     mov     r12b, dil            
     mov     r13,  rsi          
     mov     edi, 32
 
     call    malloc            
     test    rax, rax
-    je      .null_return       
-    xor     r14, r14            
+    je      .null_return
+
+    xor     r14, r14        ; prev y next a null     
     mov     [rax], r14       
     mov     [rax + 8], r14      
     mov     byte [rax + 16], r12b 
@@ -59,14 +69,14 @@ string_proc_node_create_asm:
     pop rbp
     ret
 
-
+; agergar node a list
 string_proc_list_add_node_asm:
-    mov rbx, rdi            ; list
+    mov rbx, rdi            
 
     ; Creamos el nodo
-    mov rdi, rsi            ; type
-    mov rsi, rdx            ; hash
-    call string_proc_node_create_asm
+    mov rdi, rsi
+    mov rsi, rdx
+    call string_proc_node_create_asm    ; funcion previa
     test rax, rax
     je .end                 
 
@@ -91,15 +101,15 @@ string_proc_list_add_node_asm:
 .end:
     ret
 
-
+; concatenar los hash si coincide tipo
 string_proc_list_concat_asm:
     push rbp
     mov rbp, rsp
-    sub rsp, 48             ; reserva
+    sub rsp, 40             ; reserva
 
     mov [rsp], rdi
     mov [rsp+8], rsi
-    mov [rsp+16], rdx
+    mov [rsp+16], rdx        ; base
 
     
     mov rdi, rdx
@@ -121,12 +131,12 @@ string_proc_list_concat_asm:
 .loop:
     mov rcx, [rsp+32]
     test rcx, rcx
-    jz .fin                
+    jz .end                
 
     ; type check
     mov dl, [rcx+16]
     cmp dl, byte [rsp+8]
-    jne .nodo_siguiente
+    jne .nodo_update
 
 
     mov rdi, [rsp+24]
@@ -138,21 +148,21 @@ string_proc_list_concat_asm:
     mov [rsp+24], rax
     call free
 
-.nodo_siguiente:
+.nodo_update:
     mov rcx, [rsp+32]
     mov rcx, [rcx]
     mov [rsp+32], rcx
     jmp .loop
 
-.fin:
+.end:
     mov rax, [rsp+24] 
-    add rsp, 48
+    add rsp, 40
     pop rbp
     ret
 
 
 .null_return:
     mov rax, 0
-    add rsp, 48
+    add rsp, 40
     pop rbp
     ret

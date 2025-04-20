@@ -1,16 +1,16 @@
 
 
-
+nombre = Manuel Borrell
+e-mail = mborrell@udesa.edu.ar
 
 fase 1
 
-en esta fase el input que necesitaba la bomba era un string exacto, esto lo podemos deduciar ya que la funcion (phase_1) toma el input y llama a otra funcion (strings_not_equal) en base a este nombre y al compportamiento de la funcion decidi revisar los registros utilizados por la misma, para eso use gdb y puse un breackpoint en 4022ce que es al principio de la funcion strings_not_equal y antes de que la bomba explote en 401e04 al frenar al principio de la funcion de strings_not_equal decidi leer los registros cargados rbp y rpx (utilizando x/s rbp/rbx) logre encontrar en rbp una frase "Junta esperencia en la vida  Porque nada ensenha tanto Como el sufrir y el llorar" y en rbx el input que di al principio, luego al usar esta misma frase como input la fase uno de la bomba fue desactivada
+en esta fase el input que necesitaba la bomba era un string exacto, esto lo podemos deducir ya que la función (phase_1) toma el input y llama a otra función (strings_not_equal) en base a este nombre y al comportamiento de la función decidi revisar los registros utilizados por la misma, para eso use gdb y puse un breakpoint en 4022ce que es al principio de la función strings_not_equal y antes de que la bomba explote en 401e04 al frenar al principio de la función de strings_not_equal decidí leer los registros cargados rbp y rpx (utilizando x/s rbp/rbx) logre encontrar en rbp una frase "Junta esperencia en la vida  Porque nada ensenha tanto Como el sufrir y el llorar" y en rbx el input que di al principio, luego al usar esta misma frase como input la fase uno de la bomba fue desactivada
 
 fase 2
 
 
-
-en esta fase lo que hice fue ir a la funcion de phase_2 y observe que esta funcion toma como parametros dos numeros los cuales hace enteros y crea un tercero con la suma de los dos numeros y restandoles 32 (EDI = arg1 + arg2 -32) y luego estos pasan como parametros a la funcion misterio (EDX y ESI son nuestros parametros), al observar la funcion misterio note en que lugares se explotaba la bomba, encontre que la funcion misterio llama dos veces a esta funcion, en la primera (401e37) ocacion podemos ver un bucle que lo que hace es extraer el primer bit del numero guardado en EDI desplazado por CL veces y lugo extrae el primer bit y lo suma a EDX el cual guarda la cantidad de bits en uno que encontro, luego cuando se llega a la iteracion 32 revisa si EDX es 11 sino la bomba explota por lo tanto sabemos que el numero guardado en EDI tiene que tener 11 bits en 1, luego la segunda vez que esta funcion revisa para explotar la bomba es en (401e3b) la operacion que hace es un xor entre EBX y EBP y si este da un resultado positivo explota, por lo tanto llegamos a la conclusion que:
+en esta fase lo que hice fue ir a la funcion de phase_2 y observe que esta funcion toma como parametros dos numeros los cuales hace enteros y crea un tercero con la suma de los dos numeros y restandoles 32 (EDI = arg1 + arg2 -32) y luego estos pasan como parametros a la funcion misterio (EDX y ESI son nuestros parametros), al observar la funcion misterio note en que lugares se explotaba la bomba, encontre que la funcion misterio llama dos veces a esta funcion, en la primera (401e37) ocacion podemos ver un bucle que lo que hace es extraer el primer bit del numero guardado en EDI desplazado por CL veces y luego el  bit extraido lo suma a EDX el cual guarda la cantidad de bits en uno que encontro, luego cuando se llega a la iteracion 32 revisa si EDX es 11 sino la bomba explota por lo tanto sabemos que el numero guardado en EDI tiene que tener 11 bits en 1, luego la segunda vez que esta funcion revisa para explotar la bomba es en (401e3b) la operacion que hace es un xor entre EBX y EBP y si este da un resultado positivo explota, por lo tanto llegamos a la conclusion que:
 
 el xor entre nuestros args tiene que ser negativo 
 
