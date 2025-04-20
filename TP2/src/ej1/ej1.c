@@ -1,8 +1,8 @@
 #include "ej1.h"
 
-char* strdup(const char* s) {
-		char* copy = malloc(strlen(s) + 1);
-		if (copy) strcpy(copy, s);
+char* strdup(const char* original) {
+		char* copy = malloc(strlen(original) + 1);
+		if (copy) strcpy(copy, original);
 		return copy;
 }
 string_proc_list* string_proc_list_create(void){
@@ -19,10 +19,11 @@ string_proc_node* string_proc_node_create(uint8_t type, char* hash){
 	string_proc_node* node = (string_proc_node*) malloc(sizeof(string_proc_node));
 	if (!node) return NULL;
 
+	node->next = NULL; // next y prev inicializao en null
+	node->previous = NULL;
+
 	node->type = type;
 	node->hash = hash;
-	node->next = NULL;
-	node->previous = NULL;
 	return node;
 }
 
@@ -57,16 +58,15 @@ char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash)
 			return hash;
 		}
 	}
-	string_proc_node* node_actual = list->first;
+	string_proc_node* current_node = list->first;
 	char* result = strdup(hash);
-	while(node_actual != NULL){
-		if(node_actual->type == type){
-			char* aux = str_concat(result, node_actual->hash);
+	while(current_node != NULL){
+		if(current_node->type == type){
+			char* aux = str_concat(result, current_node->hash);
 			free(result);
 			result = aux;
-		
 		}
-		node_actual = node_actual->next;
+		current_node = current_node->next;
 	}
 	return result;
 }
