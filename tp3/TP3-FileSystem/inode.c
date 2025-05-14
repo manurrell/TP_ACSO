@@ -23,8 +23,7 @@ int inode_iget(struct unixfilesystem *fs, int inumber, struct inode *inp) {
 }
 
 
-int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp,
-    int blockNum) {  
+int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp, int blockNum) {  
         if (inp == NULL || blockNum < 0) {
             return -1;
         }
@@ -53,7 +52,7 @@ int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp,
             return addr;
         }
     
-        // Double indirect
+        // double indirect
         blockNum -= 7 * 256;
         int double_indirect_block = inp->i_addr[7];
         if (double_indirect_block == 0) return -1;
