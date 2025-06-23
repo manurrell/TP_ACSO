@@ -98,6 +98,59 @@ static void reuseThreadPoolTest() {
 // mis test
 
 #include <atomic>
+static void concurrentSchedulingTest() {
+    ThreadPool pool(4);
+    const int numThreads = 10;
+    const int tasksPerThread = 100;
+    atomic<int> counter(0); 
+
+    vector<thread> threads;
+
+    for (int t = 0; t < numThreads; t++) {
+        threads.emplace_back([&]() {
+            for (int i = 0; i < tasksPerThread; i++) {
+                pool.schedule([&counter]() {  // capture counter by reference
+                    counter++;
+                });
+            }
+        });
+    }
+
+    for (auto& th : threads) th.join();
+    pool.wait();
+
+    cout << "Total scheduled: " << counter.load() << endl;
+    if (counter != numThreads * tasksPerThread) {
+        cout << "Error: Race condition in schedule()" << endl;
+    }
+}
+static void scheduleAfterDestroyTest() {
+    ThreadPool* pool = new ThreadPool(2);
+    pool->schedule([]() { cout << "Task A\n"; });
+    pool->wait();
+    delete pool;
+
+    try {
+        pool->schedule([]() { cout << "Task B\n"; });
+        cout << " Error: Se pudo hacer schedule luego del destroy.\n";
+    } catch (const exception& e) {
+        cout << " Correctamente falló al hacer schedule: " << e.what() << endl;
+    }
+}
+static void mixedTaskTest() {
+    ThreadPool pool(4);
+    atomic<int> fast(0), slow(0); // direct initialization
+
+    for (int i = 0; i < 5; ++i) {
+        pool.schedule([&fast]() { fast++; });         // capture by reference
+        pool.schedule([&slow]() { 
+            sleep_for(500);
+            slow++; 
+        });
+    }
+    pool.wait();
+    cout << "Fast: " << fast << ", Slow: " << slow << endl;
+}
 
 static void countTasksTest() {
     ThreadPool pool(4);
@@ -203,6 +256,9 @@ static void buildMap(map<string, function<void(void)>>& testFunctionMap) {
         {"--stress", stressTest},                        
         {"--no-wait-cancel", noWaitCancellationTest},   
         {"--mutex-sync", mutexSynchronizationTest},
+        {"--concurrent-scheduling", concurrentSchedulingTest},
+        {"--schedule-after-destroy", scheduleAfterDestroyTest},
+        {"--mixed-tasks", mixedTaskTest},
     };
 
     for (const testEntry& entry: entries) {
